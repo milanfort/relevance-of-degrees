@@ -16,13 +16,11 @@ and answer this question utilizing the appropriate statistical inference method.
 ## Solution
 
 After analyzing the data, we decided to use it to answer the following research question:
-
 **Does academic degree affect the chance of getting a full-time job?**
-
 We used the *Chi-Square Test for Independence* in our analysis.
 Full report that documents the analysis and interprets the result in context of the data
 and the research question can be found at
-[http://www.milanfort.com/degrees-relevance/](http://www.milanfort.com/degrees-relevance/).
+[http://www.milanfort.com/relevance-of-degrees/](http://www.milanfort.com/relevance-of-degrees/).
 
 
 ## Note
