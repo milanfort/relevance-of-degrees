@@ -1,0 +1,234 @@
+---
+title: "On Relevance of Academic Degrees for Full-Time Jobs"
+author: "Milan Fort"
+date: "20.10.2014"
+output:
+  html_document:
+    theme: cerulean
+---
+
+
+### Introduction:
+
+Many people, including the author of this paper, spent years in academia in order to pursue higher education. 
+This time investment is often coupled with huge finacial investment as well.
+In theory, higher education should lead to a better chance of getting a full-time job, and thus,
+a better quality of life. In this paper, we look into whether that is indeed the case, i.e., we answer
+the research question:
+**Does academic degree affect the chance of getting a full-time job?**
+
+
+### Data:
+
+To answer the research question stated above, we use the *General Social Survey (GSS)* dataset
+provided as part of this course [1]. This dataset contains the results of monitoring the American society.
+```{r echo=TRUE}
+(load("statistics-project-gss.Rdata"))
+```
+Data for this US survey were collected through face-to-face interviews, telephone interviews,
+and computer-assisted personal interviews. There are 57061 respondents that participated in the survey
+that represent the cases in this dataset.
+
+We will use the following two variables in our analysis:
+
+1. Degree - Respondent's highest academical degree - ordinal categorical variable with possible values Less than high school, High school, Junior college, Bachelor, or Graduate.
+2. Full-Time Job - categorical variable with possible values TRUE/FALSE, indicating whether the respondent currently does have a full-time job (computed from the wrkstat variable).
+
+Since the data were collected via a survey, the researchers had no influence or control over how the data arose. Therefore, this is an **observational study**. Hence, it can provide evidence of association between these two variables, but **cannot show a causal connection** [2].
+
+Finally, the population of interest of this study are English and Spanish speaking persons, 18 years of age or older, living in the United States. The respondents were selected randomly, so the findings
+**can be generalized to the entire population**. The main source of bias might come from non-responses.
+
+
+### Exploratory data analysis:
+
+The original data set contains `r nrow(gss)` cases (respondents). For obvious reasons, we must first remove the respondents that are either retired (wrkstate = Retired) or are still studying (wrkstate = School).
+
+```{r}
+data <- gss[, c(1, 12, 15)]
+data <- data[data$wrkstat != "School" & data$wrkstat != "Retired", ]
+data$wrkstat <- factor(data$wrkstat)
+```
+
+We are now left with `r nrow(data)` cases, divided as follows:
+
+* Degree
+```{r}
+table(data$degree, useNA = "always" )
+```
+
+* Wrkstate:
+```{r}
+table(data$wrkstat, useNA = "always" )
+```
+
+Next, we need to remove `r sum(is.na(data$degree))` respondents with missing degree values (NA), and compute the full-time job variable, which contains TRUE if the respondent has a full-time job, FALSE otherwise.
+```{r}
+data <- data[!is.na(data$degree), ]
+data$fulltime <- data$wrkstat == "Working Fulltime"
+```
+
+The following contingency table summarizes the data we will be working with: 
+```{r}
+table(data$degree, data$fulltime)
+```
+The mosaic plot below contains the visualization of this data.
+```{r}
+plot(table(data$degree, data$fulltime), color=c("darkred", "darkgreen"), main="", xlab = "highest degree", ylab = "full-time job?")
+```
+
+This exploratory data analysis suggests that there is a positive connection between the highest attained academic degree and chance of getting a full-time job.
+
+
+### Inference:
+
+#### Hypotheses
+
+The goal of this inference is to prove whether there is an association between
+the obtained academic degree and the full-time job.
+As usual, the null hypothesis claims there is no difference (no association),
+and the alternative hypotheses claims the opposite:
+
+_H0_: The academic degree and full-time job are independent, i.e. there is no association between the two.
+
+_HA_: The academic degree and full-time job are associated.
+
+#### Methods and Conditions
+
+As discussed in the section Data above, we have to analyze relationship between two categorical
+variables, degree and fulltime, where one of those (degree) has more than two levels.
+Therefore, the appropriate statistical technique for this inference is the _chi-square test for independence_.
+
+In the chi-square test, we compute a test statistic (called unsuprisigly chi-square) that quantifies how different the observed counts are from the expected counts. If the deviations are unusually large,
+it will provide statistically significant evidence in favor of the alternative hypothesis. Othewise,
+we fail to reject the null hypothesis.
+
+Before we can begin with the inference, we need to verify that the conditions necessary to apply
+this technique are met:
+
+* __Independence__. The number of respondents in this study is `r nrow(gss)`, which is certainly
+less than 10% of the entire US adult population. The respondents were selected randomly,
+and it is easy to see that each respondent contributes to exactly one count in the contingency
+(two-way) table (constructed in section Exploratory data analysis).
+
+* __Sample size / distribution__. The table with expected counts, which we construct in the section Inference below, does have at least five cases in each cell.
+
+* __Degrees of freedom__. The table is associated with chi-square distribution with degrees of freedom 
+four, as we compute in section Inference below, which is certainly more than one.
+
+Since all conditions are satisfied, we use the theoretical method (instead of a simulation)
+to perform the inference, and we can expect to get accurate results from our inference.
+
+
+#### Inference
+
+The following two-way (contingency) table, derived from table we constructed in section
+Exploratory data analysis above, contains the __observed counts__ we need to evaluate against
+the null hypothesis: 
+```{r}
+observed <- t(table(data$degree, data$fulltime))
+rownames(observed) <- c("no full-time", "full-time")
+observed
+```
+Based on this table, we compute the **expected counts**.
+First, column totals, which indicate how many respondents there are in each degree group, can be obtained
+as:
+```{r}
+(column_totals <- table(data$degree))
+```
+Then, the row totals, which can be interpreted as how many respondents have a full-time job:
+```{r}
+(row_totals <- table(data$fulltime))
+```
+Finally, the table total can be computed as the overall number of observations:
+```{r}
+(table_total <- nrow(data))
+```
+To get the proportion of how many respondents have a full-time job, we need to divide the row totals by
+table total:
+```{r}
+proportion <- (row_totals/table_total)
+names(proportion) <- c("no", "yes")
+proportion
+```
+
+Now we can compute the expected count of respondents without a full-time job and with a full-time job, 
+and combine those two to obtain the expected counts:
+```{r}
+without <- column_totals * proportion[1]
+with <- column_totals * proportion[2]
+expected <- rbind(without, with)
+rownames(expected) <- c("no full-time", "full-time")
+expected
+```
+Comparing these values to the observed counts above, we can already see that there are indeed significant
+differences. We can now compute the chi-square statistic:
+```{r}
+chi_square <- 0
+for (i in 1:nrow(expected)) {
+    for (j in 1:ncol(expected)) {
+        x <- ((observed[i, j] - expected[i, j])^2)/expected[i, j]
+        chi_square <- chi_square + x
+    }
+}
+chi_square
+```
+
+This computed static follows a chi-square distribution. The degrees of freedom (df) of this distribution
+are computed as: `df = (number of rows - 1) * (number of columns - 1)`:
+```{r}
+(df <- (nrow(observed) - 1) * (ncol(observed) - 1))
+```
+Finally, we can compute the *p-value*:
+```{r}
+(p_value <- pchisq(q = chi_square, df = 4, lower.tail = FALSE))
+```
+For comparison, we can use the built-in function `chisq.test()` to perform the inference: 
+```{r}
+chisq.test(observed)
+```
+We can see that the results of the built-in function are identical to our inference results.
+
+
+#### Results
+
+The chi-square statistic computed in the section above is very large, which leads to a very small
+p-value - it is effectively zero.
+By definition, p-value is the probability we would observe such data (or even more extreme values),
+given the null hypothesis is true.
+Since the p-value is smaller then the default significance level alpha = 0.05, __we reject the null hypothesis in favor of the alternative hypothesis__.
+We can conclude that there is strong evidence that academic degree and full-time job are
+associated (dependent).
+
+Note that for these types of variables, there is no statistical technique (we would know of)
+for constructing confidence intervals.
+Therefore, there is nothing to compare the result of our hypothesis test to.
+
+
+### Conclusion:
+
+In this paper, we proved that there is statistically significant evidence that academic degree does
+affect whether a person has a full-time job or not. The used statistical technique, chi-squared
+test for indepedence, allowed us to claim that at least one academic degree affects the
+chance of getting a full-time job. This technique, however, is insuficient to determine 
+if there is a positive connection between the two variables, i.e.
+whether a higher academic degree leads to a greater chance of getting a full-time job.
+Possible future research might try to answer this question, or even correlate the years of study
+with the total annual income.
+
+
+### References:
+1. Smith T.; Hout M.; Marsden P.. General Social Survey, 1972-2012 [Cumulative File]. ICPSR34802-v1. Storrs, CT: Roper Center for Public Opinion Research, University of Connecticut /Ann Arbor, MI: Inter-university Consortium for Political and Social Research [distributors], 2013-09-11. doi:10.3886/ICPSR34802.v1, Persistent URL: [http://doi.org/10.3886/ICPSR34802.v1](http://doi.org/10.3886/ICPSR34802.v1).
+
+2. Diez D.; Barr C.; Cetinkaya-Rundel M.
+OpenIntro Statistics, Second Edition.
+ISBN 9781478217206. CreateSpace Independent Publishing Platform, 2012.
+
+
+### Appendix:
+
+Below is an example page from the dataset used in this paper, with variables of interest
+*degree* and *fulltime*.
+```{r}
+head(data, n=12)
+```
