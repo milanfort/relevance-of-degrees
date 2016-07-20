@@ -174,7 +174,7 @@ for (i in 1:nrow(expected)) {
 chi_square
 ```
 
-This computed static follows a chi-square distribution. The degrees of freedom (df) of this distribution
+This computed statistic follows a chi-square distribution. The degrees of freedom (df) of this distribution
 are computed as: `df = (number of rows - 1) * (number of columns - 1)`:
 ```{r}
 (df <- (nrow(observed) - 1) * (ncol(observed) - 1))
