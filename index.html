@@ -250,7 +250,7 @@ for (i in 1:nrow(expected)) {
 }
 chi_square</code></pre>
 <pre><code>## [1] 2786.387</code></pre>
-<p>This computed static follows a chi-square distribution. The degrees of freedom (df) of this distribution are computed as: <code>df = (number of rows - 1) * (number of columns - 1)</code>:</p>
+<p>This computed statistic follows a chi-square distribution. The degrees of freedom (df) of this distribution are computed as: <code>df = (number of rows - 1) * (number of columns - 1)</code>:</p>
 <pre class="r"><code>(df &lt;- (nrow(observed) - 1) * (ncol(observed) - 1))</code></pre>
 <pre><code>## [1] 4</code></pre>
 <p>Finally, we can compute the <em>p-value</em>:</p>
